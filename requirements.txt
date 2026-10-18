@@ -1,0 +1,12 @@
+# Build tools for PostgreSQL, installed by build.sh into a venv of
+# /usr/bin/python3 (3.9.6, from Xcode) with:
+#   pip install --no-cache-dir --require-hashes --only-binary :all: --no-deps -r requirements.txt
+# meson 1.11.2 and pkgconf 2.4.3.post2 are the last releases that support
+# Python 3.9. Each hash is the sha256 of the macOS wheel, from
+# https://pypi.org/pypi/<name>/<version>/json (digests.sha256).
+meson==1.11.2 \
+    --hash=sha256:7e4f6e83fec83e3eaac928e058b073c7557b282c35b6a2024cea143a39926a39
+ninja==1.13.2 \
+    --hash=sha256:fd82e26c0706ad4ab88e5fdd26f3fab0a987a90f810160f6c322e752c6af298b
+pkgconf==2.4.3.post2 \
+    --hash=sha256:e9adb489a4a52dad6f6029d5dffd2d4e4262b5b9387ae34869ef5576ce7834e9
