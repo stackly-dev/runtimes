@@ -15,9 +15,11 @@ DEP_LICENSE_FILE=LICENSE
 DEP_SOURCE_DIR=icu
 
 # Runs in the source folder. On macOS ICU gives its dylibs a bare install name
-# (libicuuc.78.dylib) unless --enable-rpath, which only turns it into
-# <prefix>/lib/libicuuc.78.dylib (config/mh-darwin adds no LC_RPATH), so the
-# relocation can rewrite it like every other reference into the build root.
+# (libicuuc.78.dylib) unless --enable-rpath, which makes it
+# <prefix>/lib/libicuuc.78.dylib, so the relocation can rewrite it like every
+# other reference into the build root. --enable-rpath also adds an absolute
+# LC_RPATH to <prefix>/lib; the relocation removes every LC_RPATH and the
+# audit refuses any that is absolute.
 dep_build() {
 	local prefix=$1
 	cd source
