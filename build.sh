@@ -235,7 +235,23 @@ inner_main() {
 	/usr/bin/python3 -m venv "$ROOT/venv"
 	"$ROOT/venv/bin/python3" -m pip install --disable-pip-version-check --no-cache-dir \
 		--require-hashes --only-binary :all: --no-deps -r "$HERE/requirements.txt"
-	printf 'meson %s, ninja %s, pkgconf %s\n' "$(meson --version)" "$(ninja --version)" "$(pkgconf --version)"
+	# Each tool must run and report the pinned version.
+	TC_MESON=$(requirement_version meson "$HERE/requirements.txt")
+	TC_NINJA=$(requirement_version ninja "$HERE/requirements.txt")
+	TC_PKGCONF=$(requirement_version pkgconf "$HERE/requirements.txt")
+	name=$(meson --version)
+	[ "$name" = "$TC_MESON" ] || die "meson reports $name, not $TC_MESON"
+	# The PyPI ninja reports 1.13.2.git.kitware.jobserver-pipe-1.
+	name=$(ninja --version)
+	case $name in
+	"$TC_NINJA" | "$TC_NINJA".*) ;;
+	*) die "ninja reports $name, not $TC_NINJA" ;;
+	esac
+	name=$(pkg-config --version)
+	[ "$name" = "${TC_PKGCONF%%.post*}" ] || die "pkg-config reports $name, not ${TC_PKGCONF%%.post*}"
+	name=$(pkgconf --version)
+	[ "$name" = "${TC_PKGCONF%%.post*}" ] || die "pkgconf reports $name, not ${TC_PKGCONF%%.post*}"
+	printf 'meson %s, ninja %s, pkgconf %s\n' "$TC_MESON" "$TC_NINJA" "$TC_PKGCONF"
 	write_sdk_pc "$ROOT/sdk-pkgconfig" "$SDKROOT" || die "cannot write the SDK .pc files"
 	/usr/bin/head -n 50 "$ROOT"/sdk-pkgconfig/*.pc
 
@@ -244,9 +260,6 @@ inner_main() {
 	TC_SDK=$(first_line /usr/bin/xcrun --show-sdk-version)
 	TC_CLANG=$(first_line /usr/bin/clang --version)
 	TC_PYTHON=$(first_line /usr/bin/python3 --version)
-	TC_MESON=$(requirement_version meson "$HERE/requirements.txt")
-	TC_NINJA=$(requirement_version ninja "$HERE/requirements.txt")
-	TC_PKGCONF=$(requirement_version pkgconf "$HERE/requirements.txt")
 	TC_BISON=$(first_line /usr/bin/bison --version)
 	TC_FLEX=$(first_line /usr/bin/flex --version)
 	TC_PERL=$(/usr/bin/perl -e 'print $^V')
@@ -274,7 +287,8 @@ inner_main() {
 		recipe_build "$ROOT/stage"
 	)
 
-	step "scan the configure logs for /opt/homebrew"
+	# The step title must not contain the path it scans for: it is in the log.
+	step "scan the configure logs and the build log for Homebrew paths"
 	scan_config_logs "$ROOT/src" "$LOG" || die "the build saw /opt/homebrew"
 
 	# 7 and 8. Package folder, relocation, signing, audit, manifest, scans.

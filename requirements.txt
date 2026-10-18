@@ -2,7 +2,9 @@
 # /usr/bin/python3 (3.9.6, from Xcode) with:
 #   pip install --no-cache-dir --require-hashes --only-binary :all: --no-deps -r requirements.txt
 # meson 1.11.2 and pkgconf 2.4.3.post2 are the last releases that support
-# Python 3.9. Each hash is the sha256 of the macOS wheel, from
+# Python 3.9. On Python 3.9 the pkgconf wrapper imports importlib_metadata,
+# which needs zipp; both are pinned at their last releases for Python 3.9.
+# Each hash is the sha256 of the wheel for this Mac, from
 # https://pypi.org/pypi/<name>/<version>/json (digests.sha256).
 meson==1.11.2 \
     --hash=sha256:7e4f6e83fec83e3eaac928e058b073c7557b282c35b6a2024cea143a39926a39
@@ -10,3 +12,7 @@ ninja==1.13.2 \
     --hash=sha256:fd82e26c0706ad4ab88e5fdd26f3fab0a987a90f810160f6c322e752c6af298b
 pkgconf==2.4.3.post2 \
     --hash=sha256:e9adb489a4a52dad6f6029d5dffd2d4e4262b5b9387ae34869ef5576ce7834e9
+importlib-metadata==8.7.1 \
+    --hash=sha256:5a1f80bf1daa489495071efbb095d75a634cf28a8bc299581244063b53176151
+zipp==3.23.1 \
+    --hash=sha256:0b3596c50a5c700c9cb40ba8d86d9f2cc4807e9bedb06bcdf7fac85633e444dc

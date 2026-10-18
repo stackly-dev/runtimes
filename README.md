@@ -14,8 +14,9 @@ from in `STACKLY-ARTIFACT.json`.
 ## Requirements
 
 - macOS 27 on Apple silicon with Xcode 27 selected (`xcode-select -p`).
-- `/usr/bin/python3` (Python 3.9.6 from Xcode); meson, ninja, and pkgconf are
-  installed from `requirements.txt` into a venv of it, pinned by hash.
+- `/usr/bin/python3` (Python 3.9.6 from Xcode); meson, ninja, and pkgconf
+  (with importlib-metadata and zipp, which its wrapper needs on Python 3.9)
+  are installed from `requirements.txt` into a venv of it, pinned by hash.
 - bison, flex, perl, make, curl, tar, and jq from `/usr/bin`.
 - Network access to the source sites and PyPI.
 - Nothing in `/usr/local/include` or `/usr/local/lib` that clang or ld would
@@ -72,7 +73,7 @@ build.sh                 ./build.sh <provider> <version> <build>, ./build.sh --c
 lib/common.sh            environment, sources, SDK .pc files, relocation, signing, audit, scans, package
 recipes/<provider>.sh    pinned sources and build steps of a provider
 recipes/deps/<name>.sh   pinned sources and build steps of a bundled dependency
-requirements.txt         meson, ninja, and pkgconf with hashes
+requirements.txt         meson, ninja, pkgconf, and the wheels pkgconf needs, with hashes
 tests/check.sh           fixtures for the checks in lib/common.sh
 ```
 
