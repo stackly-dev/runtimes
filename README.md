@@ -1,12 +1,12 @@
-# stackly-runtimes
+# stackly-dev/runtimes
 
-Build recipes for the runtime artifacts that [Stackly](https://github.com/ojiepermana/stackly)
+Build recipes for the runtime artifacts that [Stackly](https://github.com/stackly-dev/stackly)
 cannot download from upstream: PostgreSQL 17 and 18 (with OpenSSL, ICU, lz4,
 and zstd bundled) and Valkey. The decisions behind them are in spec 0003 of the
 Stackly repository (`docs/specs/0003-sumber-packaging-runtime/`).
 
 This repository holds recipes only. Artifacts are built by hand on the
-maintainer's Mac and published on the GitHub Releases of `ojiepermana/stackly`
+maintainer's Mac and published on the GitHub Releases of `stackly-dev/stackly`
 under the tag `runtime/<id>`, after a local spike passes and the release owner
 approves the upload. Each artifact names the commit of the recipe it was built
 from in `STACKLY-ARTIFACT.json`.

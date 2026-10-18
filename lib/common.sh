@@ -7,7 +7,7 @@
 
 STACKLY_DEPLOYMENT_TARGET=27.0
 STACKLY_BUILD_PARENT=/private/tmp/stackly-build
-STACKLY_RECIPE_REPO=ojiepermana/stackly-runtimes
+STACKLY_RECIPE_REPO=stackly-dev/runtimes
 
 # The variables the build may see after `env -i`, and nothing else (spec 0003,
 # Environment build). bash itself adds `_` to the environment of every command.
