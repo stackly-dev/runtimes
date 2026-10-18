@@ -51,6 +51,67 @@ recipe_package() {
 	done
 }
 
+# The notice scan (spec 0003, Notice pihak ketiga): the copyright owners of
+# Valkey itself (`|` between them), and the folders of the source to scan.
+# deps/ is covered by the vendored components below.
+RECIPE_OWNERS="Valkey contributors|Redis Ltd|Salvatore Sanfilippo|Redis contributors"
+RECIPE_NOTICE_DIRS="src"
+
+# The .c and .h files of src/ whose first comment block names another
+# copyright holder (or names one only on the line after `Copyright`), from
+# the scan of the pinned source. Their blocks go under `Third party notices`
+# in LICENSES/valkey.txt.
+recipe_notice_files() {
+	case $1 in
+	9.1.2)
+		/bin/cat <<'EOF'
+src/ae_evport.c
+src/ae_kqueue.c
+src/connection.c
+src/crc16.c
+src/crc64.c
+src/crccombine.c
+src/crcspeed.c
+src/crcspeed.h
+src/geo.c
+src/geohash.c
+src/geohash.h
+src/geohash_helper.c
+src/geohash_helper.h
+src/intset.c
+src/intset.h
+src/lzf.h
+src/lzfP.h
+src/lzf_c.c
+src/lzf_d.c
+src/modules/helloacl.c
+src/mt19937-64.c
+src/mt19937-64.h
+src/quicklist.c
+src/quicklist.h
+src/rdma.c
+src/rio.c
+src/rio.h
+src/sds.c
+src/sds.h
+src/setcpuaffinity.c
+src/setproctitle.c
+src/sha256.c
+src/sha256.h
+src/siphash.c
+src/strl.c
+src/t_zset.c
+src/unix.c
+src/util.c
+src/valkey-check-aof.c
+src/ziplist.c
+src/ziplist.h
+EOF
+		;;
+	*) return 1 ;;
+	esac
+}
+
 # Third party code in the source tarball that is linked statically into the
 # packaged binaries (deps/ of the source; jemalloc is not built with
 # MALLOC=libc, and gtest-parallel is a test script). One `name|SPDX` per line.

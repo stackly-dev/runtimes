@@ -307,6 +307,89 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# check_notices, write_provider_license
+
+notice=$WORK/notice-src
+mkdir -p "$notice/src/sub"
+printf 'Example License\n\nCopyright (c) 2026, Example contributors.\n' >"$notice/COPYING"
+cat >"$notice/src/adler.c" <<'EOF'
+/* crcspeed.c -- incremental CRC
+ *
+ * Copyright (C) 2013 Mark Adler
+ *
+ * This software is provided 'as-is', without any express or implied warranty.
+ */
+int adler(void) { return 0; }
+/* Copyright (C) 2099 A later comment that is not the first block */
+EOF
+cat >"$notice/src/own.c" <<'EOF'
+#include <stdio.h>
+/*
+ * Copyright (c) 2024-present, Example contributors.
+ * Copyright (c) 2009-2012, Example Ltd.
+ *
+ * Redistributions of source code must retain the above copyright notice.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS".
+ */
+int own(void) { return 0; }
+EOF
+cat >"$notice/src/sub/nextline.h" <<'EOF'
+/*-
+ * Copyright (c) 1990, 1993
+ *	Example Ltd and others.
+ */
+EOF
+cat >"$notice/src/sub/slashes.c" <<'EOF'
+// Copyright 2018 Ulf Adams
+//
+// Boost Software License 1.0.
+int slashes;
+EOF
+printf 'int plain;\n' >"$notice/src/plain.c"
+printf 'Copyright (C) 2013 Mark Adler in a text file\n' >"$notice/src/notes.txt"
+owners="Example contributors|Example Ltd"
+listed="src/adler.c
+src/sub/nextline.h
+src/sub/slashes.c"
+expect_fail "notices: an unlisted Mark Adler header fails" \
+	"src/adler.c has a third party copyright notice that the recipe does not list" \
+	check_notices "$notice" "$owners" "src/sub/nextline.h
+src/sub/slashes.c" src
+expect_pass "notices: files naming only provider owners pass when the others are listed" \
+	check_notices "$notice" "$owners" "$listed" src
+expect_fail "notices: a listed file missing from the source fails" \
+	"src/gone.c is listed as a notice file but is not in the source" \
+	check_notices "$notice" "$owners" "$listed
+src/gone.c" src
+expect_fail "notices: an owner on the line after Copyright counts as third party" \
+	"src/sub/nextline.h has a third party copyright notice" \
+	check_notices "$notice" "$owners" "src/adler.c
+src/sub/slashes.c" src
+expect_fail "notices: a // comment block is scanned too" \
+	"src/sub/slashes.c has a third party copyright notice" \
+	check_notices "$notice" "$owners" "src/adler.c
+src/sub/nextline.h" src
+expect_equal "notices: the scan lists exactly the third party files" "$listed" \
+	"$(third_party_files "$notice" "$owners" src)"
+expect_fail "notices: a missing scan folder fails" "contrib is not in the source" \
+	check_notices "$notice" "$owners" "$listed" src contrib
+write_provider_license "$notice" COPYING "$listed" "$WORK/provider.txt"
+expect_equal "license: the main license text comes first" "Example License" "$(head -n 1 "$WORK/provider.txt")"
+after=$(sed -n '/^Third party notices$/,$p' "$WORK/provider.txt")
+if [[ $after == *"src/adler.c"*"Copyright (C) 2013 Mark Adler"*"src/sub/nextline.h"*"Copyright 2018 Ulf Adams"* ]]; then
+	ok "license: each listed file's block follows Third party notices"
+else
+	not_ok "license: each listed file's block follows Third party notices" "$(cat "$WORK/provider.txt")"
+fi
+if [[ $after == *"2099"* ]]; then
+	not_ok "license: only the first comment block is copied" "$after"
+else
+	ok "license: only the first comment block is copied"
+fi
+write_provider_license "$notice" COPYING "" "$WORK/provider-plain.txt"
+expect_equal "license: no list means the main license text alone" "$(cat "$notice/COPYING")" "$(cat "$WORK/provider-plain.txt")"
+
+# ---------------------------------------------------------------------------
 # write_sdk_pc, write_sha256_file, requirement_version
 
 sdk=$(xcrun --show-sdk-path)

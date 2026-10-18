@@ -281,6 +281,14 @@ inner_main() {
 	file=$(fetch_source "$SOURCE_URL" "$SOURCE_SHA256" "$OUT/sources")
 	extract_verified "$file" "$SOURCE_SHA256" "$ROOT/src" || die "cannot extract the $PROVIDER source"
 
+	# Before the package: every third party notice in the source is listed.
+	step "scan the $PROVIDER source for third party notices"
+	NOTICES=$(recipe_notice_files "$VERSION") || die "recipes/$PROVIDER.sh lists no notice files for $VERSION"
+	# shellcheck disable=SC2086
+	check_notices "$ROOT/src/$SOURCE_DIR" "$RECIPE_OWNERS" "$NOTICES" $RECIPE_NOTICE_DIRS ||
+		die "the notice list of recipes/$PROVIDER.sh does not match the source"
+	printf '%s files with third party notices in %s\n' "$(printf '%s\n' "$NOTICES" | /usr/bin/grep -c .)" "$RECIPE_NOTICE_DIRS"
+
 	step "build $PROVIDER $VERSION"
 	(
 		cd "$ROOT/src/$SOURCE_DIR"
@@ -303,7 +311,7 @@ inner_main() {
 	fi
 	license_dir=$PKG/LICENSES
 	/bin/mkdir -p "$license_dir"
-	/bin/cp "$ROOT/src/$SOURCE_DIR/$RECIPE_LICENSE_FILE" "$license_dir/$PROVIDER.txt"
+	write_provider_license "$ROOT/src/$SOURCE_DIR" "$RECIPE_LICENSE_FILE" "$NOTICES" "$license_dir/$PROVIDER.txt"
 	for name in $RECIPE_DEPS; do
 		load_dependency "$name"
 		/bin/cp "$ROOT/src/$DEP_SOURCE_DIR/$DEP_LICENSE_FILE" "$license_dir/$DEP_NAME.txt"

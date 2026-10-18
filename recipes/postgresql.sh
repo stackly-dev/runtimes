@@ -81,6 +81,109 @@ recipe_package() {
 	/bin/cp -R "$stage/include" "$pkg/include"
 }
 
+# The notice scan (spec 0003, Notice pihak ketiga): the copyright owners of
+# PostgreSQL itself (`|` between them), and the folders of the source to scan.
+RECIPE_OWNERS="PostgreSQL Global Development Group|Regents of the University of California"
+RECIPE_NOTICE_DIRS="src contrib"
+
+# The .c and .h files of src/ and contrib/ whose first comment block names
+# another copyright holder (or names one only on the line after
+# `Copyright`), from the scan of the pinned sources; 17.11 and 18.6 have the
+# same list. Their blocks go under `Third party notices` in
+# LICENSES/postgresql.txt.
+recipe_notice_files() {
+	case $1 in
+	17.11 | 18.6)
+		/bin/cat <<'EOF'
+contrib/pageinspect/btreefuncs.c
+contrib/pgcrypto/crypt-des.c
+contrib/pgcrypto/mbuf.c
+contrib/pgcrypto/mbuf.h
+contrib/pgcrypto/openssl.c
+contrib/pgcrypto/pgcrypto.c
+contrib/pgcrypto/pgcrypto.h
+contrib/pgcrypto/pgp-armor.c
+contrib/pgcrypto/pgp-cfb.c
+contrib/pgcrypto/pgp-compress.c
+contrib/pgcrypto/pgp-decrypt.c
+contrib/pgcrypto/pgp-encrypt.c
+contrib/pgcrypto/pgp-info.c
+contrib/pgcrypto/pgp-mpi-openssl.c
+contrib/pgcrypto/pgp-mpi.c
+contrib/pgcrypto/pgp-pgsql.c
+contrib/pgcrypto/pgp-pubdec.c
+contrib/pgcrypto/pgp-pubenc.c
+contrib/pgcrypto/pgp-pubkey.c
+contrib/pgcrypto/pgp-s2k.c
+contrib/pgcrypto/pgp.c
+contrib/pgcrypto/pgp.h
+contrib/pgcrypto/px-crypt.c
+contrib/pgcrypto/px-crypt.h
+contrib/pgcrypto/px-hmac.c
+contrib/pgcrypto/px.c
+contrib/pgcrypto/px.h
+contrib/pgrowlocks/pgrowlocks.c
+contrib/pgstattuple/pgstatindex.c
+contrib/pgstattuple/pgstattuple.c
+contrib/uuid-ossp/uuid-ossp.c
+src/backend/regex/regc_color.c
+src/backend/regex/regc_cvec.c
+src/backend/regex/regc_lex.c
+src/backend/regex/regc_locale.c
+src/backend/regex/regc_nfa.c
+src/backend/regex/regcomp.c
+src/backend/regex/rege_dfa.c
+src/backend/regex/regerror.c
+src/backend/regex/regexec.c
+src/backend/regex/regexport.c
+src/backend/regex/regfree.c
+src/backend/regex/regprefix.c
+src/backend/utils/adt/inet_cidr_ntop.c
+src/backend/utils/adt/inet_net_pton.c
+src/backend/utils/mb/wstrcmp.c
+src/backend/utils/mb/wstrncmp.c
+src/bin/pg_dump/pg_backup.h
+src/bin/pg_dump/pg_backup_archiver.c
+src/bin/pg_dump/pg_backup_archiver.h
+src/bin/pg_dump/pg_backup_custom.c
+src/bin/pg_dump/pg_backup_directory.c
+src/bin/pg_dump/pg_backup_null.c
+src/bin/pg_dump/pg_backup_tar.c
+src/bin/pg_dump/pg_restore.c
+src/common/d2s.c
+src/common/d2s_full_table.h
+src/common/d2s_intrinsics.h
+src/common/f2s.c
+src/common/ryu_common.h
+src/include/common/shortest_dec.h
+src/include/getopt_long.h
+src/include/pg_getopt.h
+src/include/regex/regcustom.h
+src/include/regex/regexport.h
+src/include/regex/regguts.h
+src/pl/plperl/ppport.h
+src/port/getopt_long.c
+src/port/inet_net_ntop.c
+src/port/pgmkdirp.c
+src/port/snprintf.c
+src/port/win32gettimeofday.c
+src/tools/pg_bsd_indent/args.c
+src/tools/pg_bsd_indent/err.c
+src/tools/pg_bsd_indent/err.h
+src/tools/pg_bsd_indent/indent.c
+src/tools/pg_bsd_indent/indent.h
+src/tools/pg_bsd_indent/indent_codes.h
+src/tools/pg_bsd_indent/indent_globs.h
+src/tools/pg_bsd_indent/io.c
+src/tools/pg_bsd_indent/lexi.c
+src/tools/pg_bsd_indent/parse.c
+src/tools/pg_bsd_indent/pr_comment.c
+EOF
+		;;
+	*) return 1 ;;
+	esac
+}
+
 # PostgreSQL has no vendored component listed in the manifest.
 recipe_vendored() {
 	:

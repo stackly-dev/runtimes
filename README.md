@@ -26,9 +26,9 @@ from in `STACKLY-ARTIFACT.json`.
 ## Usage
 
 ```bash
-./build.sh valkey 9.1.2 1
-./build.sh postgresql 18.6 1
-./build.sh postgresql 17.11 1
+./build.sh valkey 9.1.2 2
+./build.sh postgresql 18.6 2
+./build.sh postgresql 17.11 2
 ```
 
 `./build.sh <provider> <version> <build>` writes `out/<id>.tar.gz`,
@@ -56,13 +56,18 @@ for inspection.
    `STACKLY_*` variables. The environment is logged and checked.
 3. Downloads each source over https into `out/sources/<sha256>` and checks
    it against the sha256 pinned in the recipe before extracting it.
-4. Builds the dependencies (PostgreSQL only) and the provider, then fails if
+4. Scans the provider source (Valkey `src/`, PostgreSQL `src/` and
+   `contrib/`) for `.c` and `.h` files whose first comment block names a
+   copyright holder other than the provider's own, and fails on any file the
+   recipe does not list. Their blocks go into `LICENSES/<provider>.txt` under
+   `Third party notices`, after the provider's main license text.
+5. Builds the dependencies (PostgreSQL only) and the provider, then fails if
    `/opt/homebrew` appears in a configure log or the build log.
-5. Assembles the package, relocates every Mach-O to `@rpath` and
+6. Assembles the package, relocates every Mach-O to `@rpath` and
    `@loader_path`, signs it ad hoc, and audits it: only `@rpath/`,
    `@loader_path/`, `@executable_path/`, `/usr/lib/`, and `/System/Library/`,
    no absolute `LC_RPATH`, only regular files and folders.
-6. Writes `STACKLY-ARTIFACT.json`, fails if the builder's home path appears in
+7. Writes `STACKLY-ARTIFACT.json`, fails if the builder's home path appears in
    any file of the package, packs the tarball, and runs every executable with
    `--version` from a copy in a path with a space and `Ü`.
 

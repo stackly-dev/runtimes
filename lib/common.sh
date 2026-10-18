@@ -518,6 +518,120 @@ check_versions() {
 }
 
 # ---------------------------------------------------------------------------
+# Third party notices (spec 0003, Notice pihak ketiga)
+
+# The awk program that reads the first comment block of each file: a /* */
+# block, or a run of // lines, whichever comes first. With owners set, it
+# prints every file whose block holds a `Copyright` line that names none of
+# the owners (case-insensitive, `|` between owners); a line whose owner sits
+# on the next line names none, so it counts as third party. Without owners,
+# it prints the block of the one file it reads.
+NOTICE_AWK='
+function finish() { if (file != "" && third) print file }
+BEGIN { n = split(tolower(owners), owner, "|") }
+FNR == 1 { finish(); file = FILENAME; state = 0; third = 0 }
+state == 2 { next }
+state == 0 {
+	if ($0 ~ /\/\*/) { state = 1; mode = "c"; first = 1 }
+	else if ($0 ~ /^[ \t]*\/\//) { state = 1; mode = "s" }
+	else next
+}
+state == 1 {
+	if (mode == "s" && $0 !~ /^[ \t]*\/\//) { state = 2; next }
+	if (!scan) print
+	if (scan && $0 ~ /Copyright/) {
+		line = tolower($0); named = 0
+		for (i = 1; i <= n; i++) if (owner[i] != "" && index(line, owner[i])) named = 1
+		if (!named) third = 1
+	}
+	if (mode == "c") {
+		rest = $0
+		if (first) { rest = substr($0, index($0, "/*") + 2); first = 0 }
+		if (index(rest, "*/")) state = 2
+	}
+}
+END { if (scan) finish() }'
+
+# Prints the first comment block of a file.
+first_comment_block() {
+	/usr/bin/awk -v scan=0 -v owners= "$NOTICE_AWK" "$1"
+}
+
+# Prints, relative to <src> and sorted, every .c and .h file under the given
+# folders of <src> whose first comment block names a copyright owner outside
+# <owners> (`|` between owners).
+third_party_files() {
+	local src=$1 owners=$2
+	shift 2
+	(
+		cd "$src" || exit 1
+		/usr/bin/find "$@" -type f \( -name '*.c' -o -name '*.h' \) -print0 |
+			/usr/bin/xargs -0 /usr/bin/awk -v scan=1 -v owners="$owners" "$NOTICE_AWK"
+	) | /usr/bin/sort -u
+}
+
+# Fails for every file under the given folders of <src> with a third party
+# notice that the newline separated <listed> paths do not hold, and for every
+# listed path that is not in <src>.
+check_notices() {
+	local src=$1 owners=$2 listed=$3 path problems=""
+	shift 3
+	for path in "$@"; do
+		[ -d "$src/$path" ] || complain "the notice scan folder $path is not in the source" || return 1
+	done
+	while IFS= read -r path; do
+		[ -n "$path" ] || continue
+		# A case match, not `printf | grep -q`: under pipefail an early grep
+		# exit can kill printf with SIGPIPE and fail the test at random.
+		case "
+$listed
+" in
+		*"
+$path
+"*) ;;
+		*) problems="$problems$path has a third party copyright notice that the recipe does not list
+" ;;
+		esac
+	done <<EOF
+$(third_party_files "$src" "$owners" "$@")
+EOF
+	while IFS= read -r path; do
+		[ -n "$path" ] || continue
+		[ -f "$src/$path" ] || problems="$problems$path is listed as a notice file but is not in the source
+"
+	done <<EOF
+$listed
+EOF
+	if [ -n "$problems" ]; then
+		printf '%s' "$problems" >&2
+		complain "the third party notices of the source and the recipe differ"
+		return 1
+	fi
+}
+
+# Writes LICENSES/<provider>.txt: the provider's main license file, then the
+# heading `Third party notices`, then for each listed file its relative path
+# and its first comment block.
+write_provider_license() {
+	local src=$1 license=$2 listed=$3 out=$4 path
+	{
+		/bin/cat "$src/$license"
+		if [ -n "$listed" ]; then
+			printf '\n\nThird party notices\n\n'
+			printf 'These files of the source carry notices of other copyright holders.\n'
+			printf 'Each one follows as its path and the first comment block of the file.\n'
+			while IFS= read -r path; do
+				[ -n "$path" ] || continue
+				printf '\n%s\n\n' "$path"
+				first_comment_block "$src/$path"
+			done <<EOF
+$listed
+EOF
+		fi
+	} >"$out"
+}
+
+# ---------------------------------------------------------------------------
 # Package and manifest
 
 # The first line of a command's output; sed reads all of it, so the command
