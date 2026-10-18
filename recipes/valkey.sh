@@ -26,7 +26,8 @@ RECIPE_EXECUTABLES="bin/valkey-server bin/valkey-cli"
 # call passes different settings.
 VALKEY_MAKE_SETTINGS="BUILD_TLS=no USE_SYSTEMD=no MALLOC=libc"
 
-# Runs in the source folder; installs into <stage>/valkey.
+# Runs in the source folder; installs into <stage>/valkey. The version ($2)
+# is not needed: the source folder is that version.
 recipe_build() {
 	local stage=$1
 	# shellcheck disable=SC2086

@@ -284,7 +284,7 @@ inner_main() {
 	step "build $PROVIDER $VERSION"
 	(
 		cd "$ROOT/src/$SOURCE_DIR"
-		recipe_build "$ROOT/stage"
+		recipe_build "$ROOT/stage" "$VERSION"
 	)
 
 	# The step title must not contain the path it scans for: it is in the log.
